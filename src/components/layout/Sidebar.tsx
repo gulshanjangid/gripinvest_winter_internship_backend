@@ -48,6 +48,7 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const isMobile = useIsMobile();
   const location = useLocation();
 
   return (
