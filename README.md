@@ -1,5 +1,12 @@
 # Welcome to your Lovable project
 <img width="1370" height="855" alt="image" src="https://github.com/user-attachments/assets/77092034-bbe1-42fe-8106-5b27991001a8" />
+<img width="1488" height="853" alt="image" src="https://github.com/user-attachments/assets/e8add586-58d3-47b3-83fc-d4f0130eb609" />
+<img width="628" height="724" alt="image" src="https://github.com/user-attachments/assets/9ccfdcd9-f4f6-480e-a360-f3e882da6101" />
+<img width="1877" height="827" alt="image" src="https://github.com/user-attachments/assets/b9f0efef-2367-4800-ba0d-140351ab432d" />
+<img width="1333" height="841" alt="image" src="https://github.com/user-attachments/assets/f1cce776-2763-407e-a7a1-86cd3691a24f" />
+<img width="1306" height="770" alt="image" src="https://github.com/user-attachments/assets/4b102043-f3ea-498a-9d98-88651f214421" />
+<img width="1305" height="791" alt="image" src="https://github.com/user-attachments/assets/c1e0496a-9773-464c-a6f0-a4c45d2356a3" />
+
 
 ## Project info
 
