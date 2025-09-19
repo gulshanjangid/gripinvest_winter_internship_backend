@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { DollarSign, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { DollarSign, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,17 +16,41 @@ export default function Login() {
     email: "",
     password: ""
   });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const from = location.state?.from?.pathname || "/dashboard";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication - in real app, this would call an API
-    localStorage.setItem("isAuthenticated", "true");
-    navigate("/dashboard");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        navigate(from, { replace: true });
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex">
+      {/* Theme Toggle - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 bg-background">
         <div className="w-full max-w-md space-y-6">
@@ -43,6 +70,13 @@ export default function Login() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -53,6 +87,7 @@ export default function Login() {
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 
@@ -66,6 +101,7 @@ export default function Login() {
                       value={formData.password}
                       onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                       required
+                      disabled={isLoading}
                     />
                     <Button
                       type="button"
@@ -73,6 +109,7 @@ export default function Login() {
                       size="icon"
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -85,10 +122,18 @@ export default function Login() {
                   </Link>
                 </div>
 
-                <Button type="submit" variant="fintech" className="w-full" size="lg">
-                  Sign In
+                <Button type="submit" variant="fintech" className="w-full" size="lg" disabled={isLoading}>
+                  {isLoading ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
+
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">Demo Credentials:</p>
+                <div className="text-xs space-y-1">
+                  <p><strong>Admin:</strong> admin@investapp.com / password123</p>
+                  <p><strong>User:</strong> john.doe@example.com / password123</p>
+                </div>
+              </div>
 
               <div className="mt-6">
                 <Separator />

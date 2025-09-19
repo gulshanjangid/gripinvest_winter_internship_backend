@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { DollarSign, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { DollarSign, Eye, EyeOff, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { analyzePasswordStrength, generateStrongPassword } from "@/utils/passwordStrength";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,24 +26,22 @@ export default function Signup() {
   });
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
-    feedback: ""
+    feedback: "",
+    suggestions: [] as string[],
+    isStrong: false
   });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   const evaluatePassword = (password: string) => {
-    let score = 0;
-    let feedback = "Weak";
-    
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[a-z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    
-    if (score >= 4) feedback = "Strong";
-    else if (score >= 2) feedback = "Medium";
-    
-    setPasswordStrength({ score, feedback });
+    const analysis = analyzePasswordStrength(password, {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email
+    });
+    setPasswordStrength(analysis);
   };
 
   const handlePasswordChange = (password: string) => {
@@ -46,11 +49,36 @@ export default function Signup() {
     evaluatePassword(password);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleGeneratePassword = () => {
+    const newPassword = generateStrongPassword(12);
+    setFormData(prev => ({ ...prev, password: newPassword }));
+    evaluatePassword(newPassword);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock registration - in real app, this would call an API
-    localStorage.setItem("isAuthenticated", "true");
-    navigate("/dashboard");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const result = await signup({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        riskAppetite: formData.riskAppetite as 'Conservative' | 'Moderate' | 'Aggressive'
+      });
+      
+      if (result.success) {
+        navigate("/dashboard");
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getPasswordStrengthColor = () => {
@@ -61,6 +89,11 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex">
+      {/* Theme Toggle - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 bg-background">
         <div className="w-full max-w-md space-y-6">
@@ -80,6 +113,13 @@ export default function Signup() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -117,7 +157,19 @@ export default function Signup() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGeneratePassword}
+                      className="text-xs"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Generate
+                    </Button>
+                  </div>
                   <div className="relative">
                     <Input
                       id="password"
@@ -126,6 +178,7 @@ export default function Signup() {
                       value={formData.password}
                       onChange={(e) => handlePasswordChange(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                     <Button
                       type="button"
@@ -133,31 +186,49 @@ export default function Signup() {
                       size="icon"
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
+                  
                   {formData.password && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((level) => (
-                          <div
-                            key={level}
-                            className={`h-1 w-4 rounded-full ${
-                              level <= passwordStrength.score
-                                ? passwordStrength.score >= 4 
-                                  ? "bg-success" 
-                                  : passwordStrength.score >= 2 
-                                    ? "bg-warning" 
-                                    : "bg-destructive"
-                                : "bg-muted"
-                            }`}
-                          />
-                        ))}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((level) => (
+                            <div
+                              key={level}
+                              className={`h-1 w-4 rounded-full ${
+                                level <= passwordStrength.score
+                                  ? passwordStrength.score >= 4 
+                                    ? "bg-success" 
+                                    : passwordStrength.score >= 2 
+                                      ? "bg-warning" 
+                                      : "bg-destructive"
+                                  : "bg-muted"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <Badge className={getPasswordStrengthColor()}>
+                          {passwordStrength.feedback}
+                        </Badge>
                       </div>
-                      <span className={getPasswordStrengthColor()}>
-                        {passwordStrength.feedback}
-                      </span>
+                      
+                      {passwordStrength.suggestions.length > 0 && (
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">AI Suggestions:</p>
+                          <ul className="text-xs space-y-1">
+                            {passwordStrength.suggestions.map((suggestion, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <CheckCircle className="h-3 w-3 text-success mt-0.5 flex-shrink-0" />
+                                <span className="text-muted-foreground">{suggestion}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -199,9 +270,9 @@ export default function Signup() {
                   variant="fintech" 
                   className="w-full" 
                   size="lg"
-                  disabled={!formData.acceptTerms || passwordStrength.score < 2}
+                  disabled={!formData.acceptTerms || passwordStrength.score < 2 || isLoading}
                 >
-                  Create Account
+                  {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
 

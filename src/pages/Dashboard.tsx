@@ -48,7 +48,7 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">$16,500</div>
+            <div className="text-2xl font-bold text-foreground">₹16,500</div>
             <div className="flex items-center text-xs text-success">
               <ArrowUpIcon className="mr-1 h-3 w-3" />
               +8.2% from last month
@@ -75,7 +75,7 @@ export default function Dashboard() {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">+$1,300</div>
+            <div className="text-2xl font-bold text-foreground">+₹1,300</div>
             <div className="flex items-center text-xs text-success">
               <ArrowUpIcon className="mr-1 h-3 w-3" />
               +7.9% this month
@@ -181,7 +181,7 @@ export default function Dashboard() {
               <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">{investment.name}</p>
-                  <p className="text-xs text-muted-foreground">${investment.amount.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">₹{investment.amount.toLocaleString()}</p>
                 </div>
                 <div className="text-right space-y-1">
                   <div className={`flex items-center text-sm ${
