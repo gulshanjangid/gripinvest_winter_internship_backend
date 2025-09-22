@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Welcome to My full stack project - Gripinvest platform 
 <img width="1370" height="855" alt="image" src="https://github.com/user-attachments/assets/77092034-bbe1-42fe-8106-5b27991001a8" />
 <img width="1488" height="853" alt="image" src="https://github.com/user-attachments/assets/e8add586-58d3-47b3-83fc-d4f0130eb609" />
 <img width="628" height="724" alt="image" src="https://github.com/user-attachments/assets/9ccfdcd9-f4f6-480e-a360-f3e882da6101" />
